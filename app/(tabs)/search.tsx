@@ -5,10 +5,19 @@ import { images } from "@/constants/images";
 import { fetchMovies } from "@/services/api";
 import useFetch from "@/services/useFetch";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Image, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const search = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [includeAdult, setIncludeAdult] = useState(false);
 
   const {
     data: movies,
@@ -16,12 +25,28 @@ const search = () => {
     error: moviesError,
     refetch: loadMovies,
     reset,
-  } = useFetch(() => fetchMovies({ query: searchQuery }));
+  } = useFetch(
+    () => fetchMovies({ query: searchQuery, page, includeAdult }),
+    [searchQuery, page, includeAdult]
+  );
+
+  const nextPage = () => {
+    setPage((prev) => prev + 1);
+  };
+
+  const prevPage = () => {
+    setPage((prev) => (prev > 1 ? prev - 1 : 1));
+  };
+
+  const toggleAdult = () => {
+    setIncludeAdult((prev) => !prev);
+    setPage(1); // optional: reset page when toggling
+  };
 
   useEffect(() => {
     const timeoutId = setTimeout(async () => {
       if (searchQuery.trim()) {
-        await loadMovies();
+        setPage(1);
       } else {
         reset();
       }
@@ -82,7 +107,9 @@ const search = () => {
               movies?.length > 0 && (
                 <Text className="text-xl text-white font-bold">
                   Search Results for{" "}
-                  <Text className="text-accent">{searchQuery}</Text>
+                  <Text onPress={toggleAdult} className="text-accent">
+                    {searchQuery}
+                  </Text>
                 </Text>
               )}
           </>
@@ -97,6 +124,32 @@ const search = () => {
           ) : null
         }
       />
+      {movies?.length > 0 && (
+        <View className="flex-row justify-between items-center px-4 pb-32 mt-5">
+          <TouchableOpacity
+            className={`py-1 px-2 flex items-center justify-center ${
+              page === 1 ? "bg-gray-300" : "bg-purple-500 "
+            }`}
+            onPress={prevPage}
+          >
+            <Image
+              source={icons.arrow}
+              className="size-5 rotate-180"
+              tintColor="#fff"
+            />
+          </TouchableOpacity>
+          <Text className="text-light-200 text-xs">Page {page}</Text>
+
+          <TouchableOpacity
+            className={`bg-purple-500 py-1 px-2 flex items-center justify-center ${
+              movies?.length !== 20 ? "bg-gray-300" : "bg-purple-500 "
+            }`}
+            onPress={nextPage}
+          >
+            <Image source={icons.arrow} className="size-5 " tintColor="#fff" />
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };

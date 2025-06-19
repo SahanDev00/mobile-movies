@@ -5,23 +5,43 @@ import { images } from "@/constants/images";
 import { fetchMovies } from "@/services/api";
 import useFetch from "@/services/useFetch";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Image,
   ScrollView,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 
 export default function Index() {
   const router = useRouter();
+  const [page, setPage] = useState(1);
+  const [includeAdult, setIncludeAdult] = useState(false);
 
   const {
     data: movies,
     loading: moviesLoading,
     error: moviesError,
-  } = useFetch(() => fetchMovies({ query: "" }));
+  } = useFetch(
+    () => fetchMovies({ query: "", page, includeAdult }),
+    [page, includeAdult]
+  );
+
+  const nextPage = () => {
+    setPage((prev) => prev + 1);
+  };
+
+  const prevPage = () => {
+    setPage((prev) => (prev > 1 ? prev - 1 : 1));
+  };
+
+  const toggleAdult = () => {
+    setIncludeAdult((prev) => !prev);
+    setPage(1); // optional: reset page when toggling
+  };
 
   return (
     <View className="flex-1 bg-primary">
@@ -68,11 +88,34 @@ export default function Index() {
                 paddingRight: 5,
                 marginBottom: 10,
               }}
-              className="mt-2 pb-32"
+              className="mt-2"
               scrollEnabled={false}
             ></FlatList>
           </View>
         )}
+        <View className="flex-row justify-between items-center px-4 pb-32 mt-5">
+          <TouchableOpacity
+            className={`py-1 px-2 flex items-center justify-center ${
+              page === 1 ? "bg-gray-300" : "bg-purple-500 "
+            }`}
+            onPress={prevPage}
+          >
+            <Image
+              source={icons.arrow}
+              className="size-5 rotate-180"
+              tintColor="#fff"
+            />
+          </TouchableOpacity>
+          <Text onPress={toggleAdult} className="text-light-200 text-xs">
+            Page {page}
+          </Text>
+          <TouchableOpacity
+            className="bg-purple-500 py-1 px-2 flex items-center justify-center"
+            onPress={nextPage}
+          >
+            <Image source={icons.arrow} className="size-5 " tintColor="#fff" />
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );

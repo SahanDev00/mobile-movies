@@ -9,6 +9,7 @@ const MovieCard = ({
   title,
   vote_average,
   release_date,
+  adult,
 }: Movie) => {
   return (
     <Link href={`/movies/${id}`} asChild>
@@ -23,7 +24,12 @@ const MovieCard = ({
           resizeMode="cover"
         />
 
-        <Text className="text-sm font-bold text-white mt-2" numberOfLines={1}>
+        <Text
+          className={`text-sm font-bold  mt-2 ${
+            adult ? "text-pink-400" : "text-white"
+          }`}
+          numberOfLines={1}
+        >
           {title}
         </Text>
 
